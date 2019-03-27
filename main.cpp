@@ -1,55 +1,65 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <cstring>
+#include <memory>
+#include <vector>
+#include "Radar_Data.h"
 using namespace boost::asio;
-struct target_info{
-int distance;
-int16_t angle;
-int y;
-int x;
-int16_t speed;
-int8_t power;
-};
-
-struct radar_data
-{
-int16_t header;
-int8_t address;
-int16_t length;
-int8_t targetcount;
-target_info targets[30];
-int8_t sum;
+class Server{
+    using end_type=ip::tcp::endpoint;
+    using acceptor_type=ip::tcp::acceptor;
+    using socket_type=ip::tcp::socket;
+    using socket_ptr=std::shared_ptr<socket_type>;
+    using buff=char[100];
+public:
+    Server():acceptor(io,end_type(ip::tcp::v4(),5100))
+    {
+        start();
+    }
+    void start(){
+        /*std::cout<<i<<std::endl;
+        i++;*/
+        socket_ptr sock(new socket_type(io));
+        acceptor.async_accept(*sock,[this,sock](const boost::system::error_code& ec){
+            (*sock).async_read_some(buffer(buff1),[this,sock](const boost::system::error_code& ec,std::size_t size){
+                read_handler(sock,ec,size);
+            }
+            );
+            start();
+        });
+    }
+    void read_handler(socket_ptr sock,const boost::system::error_code& ec,std::size_t size){
+        std::cout<< sizeof(buff1)<<std::endl;
+        /*for(auto xx:buff1)
+            std::cout<<xx<<std::endl;*/
+        memmove(&a,buff1, sizeof(buff1));
+        //memset(buff1,0, sizeof(buff1));
+        //(*sock).send(buffer("I have received your message!"));
+        memset(buff1,0, sizeof(buff1));
+        //std::cout<<std::hex<<a.header<<std::endl;
+        std::cout<<std::to_string(a.address)<<std::endl;
+        if(a.targetcount>=1&&a.header==0x55AA){
+            for(int i=0;i<=a.targetcount-1;i++){
+                std::cout<<"x:"<<a.targets[i].x<<" y:"<<a.targets[i].y<<" distance:"<<a.targets[i].distance<<" angle:"<<a.targets[i].angle<<std::endl;
+            }
+        }
+        (*sock).async_read_some(buffer(buff1),std::bind(&Server::read_handler,this,sock,ec,size));
+    }
+    void run(){
+        io.run();
+    }
+private:
+    io_context io;
+    acceptor_type acceptor;
+    buff buff1;
+    radar_data a;
+    //int i=0;
 };
 
 int main() {
     try {
-        io_context io;
-        ip::tcp::endpoint port(ip::tcp::v4(), 5100);
-        ip::tcp::acceptor acceptor(io, port);
-        char buff[1024];
-        radar_data a;
-        ip::tcp::socket sock(io);
-        acceptor.accept(sock);
-        int i=0;
-        while (true) {
-            //std::cout << "client:" << sock.remote_endpoint().address() <<" "<< sock.remote_endpoint().port()<<std::endl;
-            sock.async_read_some(buffer(buff),[&](const boost::system::error_code &ec,std::size_t size){
-                memcpy(&a,buff,72);
-                sock.send(buffer("I have received your message!"));
-                if(a.targetcount>=1&&a.header==0x55AA){
-                    for(int i=0;i<=a.targetcount-1;i++){
-                        std::cout<<"x:"<<a.targets[i].x<<" y:"<<a.targets[i].y<<" distance:"<<a.targets[i].distance<<" angle:"<<a.targets[i].angle<<std::endl;
-                    }
-                }
-
-            });
-            io.run();
-            //memset(buff,0,72);
-            //sock.send(buffer("I have received your message!"));
-           /*sock.read_some(buffer(buff));
-           std::cout<<buff<<std::endl;
-           sock.send(buffer("hello,i am server"));*/
-        }
+       Server s;
+       s.run();
     }catch (std::exception &e){
         std::cout<<e.what()<<std::endl;
     }
