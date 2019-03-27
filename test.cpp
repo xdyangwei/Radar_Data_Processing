@@ -2,6 +2,8 @@
 #include<iostream>
 #include<boost/asio.hpp>
 #include<cstring>
+#include<chrono>
+#include<thread>
 using namespace std;
 using namespace boost::asio;
 struct target_info{
@@ -38,11 +40,9 @@ int main(){
     char buff2[30];
     cout<<sizeof(a)<<endl;
     memcpy(buff,&a,sizeof(a));
-    sock.async_send(buffer(buff),[&](const boost::system::error_code &ec,std::size_t size){
-        memset(&buff,0,72);
-        sock.receive(buffer(buff2));
-        cout<<buff2<<endl;    
-    });
+    //ip::tcp::acceptor aa;
+    sock.send(buffer(buff));
+    this_thread::sleep_for(std::chrono::microseconds(100));
     io.run();
     //i++;
     }
