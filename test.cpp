@@ -43,7 +43,7 @@ int main(){
         sock.receive(buffer(buff2));
         cout<<buff2<<endl;    
     });
-    
+    io.run();
     //i++;
     }
     return 0;
