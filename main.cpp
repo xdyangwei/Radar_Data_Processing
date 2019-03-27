@@ -31,7 +31,7 @@ int main() {
         ip::tcp::socket sock(io);
         acceptor.accept(sock);
         int i=0;
-        //while (true) {
+        while (true) {
             //std::cout << "client:" << sock.remote_endpoint().address() <<" "<< sock.remote_endpoint().port()<<std::endl;
             sock.async_read_some(buffer(buff),[&](const boost::system::error_code &ec,std::size_t size){
                 memcpy(&a,buff,72);
@@ -43,12 +43,13 @@ int main() {
                 }
 
             });
+            io.run();
             //memset(buff,0,72);
             //sock.send(buffer("I have received your message!"));
            /*sock.read_some(buffer(buff));
            std::cout<<buff<<std::endl;
            sock.send(buffer("hello,i am server"));*/
-        //}
+        }
     }catch (std::exception &e){
         std::cout<<e.what()<<std::endl;
     }
