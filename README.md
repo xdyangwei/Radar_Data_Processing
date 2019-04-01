@@ -1,5 +1,5 @@
 # Radar_TCP
-## receive radar data with tcp**
+## receive radar data with tcp
 ## Radar.h
 **the header includes the radar data struct**
 ## sync_server.cpp
