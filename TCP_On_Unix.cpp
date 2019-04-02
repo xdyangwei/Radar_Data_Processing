@@ -14,8 +14,7 @@ using namespace std;
 namespace Unix_TCP {
     class Server {
     public:
-        Server():
-        socketfd(0)
+        Server()
         {
             my_addr.sin_family=AF_INET;
             my_addr.sin_addr.s_addr=INADDR_ANY;
@@ -36,12 +35,13 @@ namespace Unix_TCP {
             if ((new_fd = accept(socketfd, (sockaddr *) (&their_addr), (socklen_t *)(&addr_in_length))) == -1) {
                 perror("accept");exit(1);
             }
-            while(true) {
+            while(i<=10) {
                     if(recv(new_fd,buff, sizeof(buff),0)==-1){
                         perror("recv");i++;continue;
                     }
                     cout<<"connection from: "<<inet_ntoa(their_addr.sin_addr)<<"his port is "<<ntohs(their_addr.sin_port)<<endl;
                     memcpy(&a,buff, sizeof(buff));
+                    cout<<stoi(to_string(a.targetcount))<<endl;
                     if(a.targetcount>=1&&a.header==0x55AA){
                         for(int i=0;i<a.targetcount;i++){
                             std::cout<<"x:"<<a.targets[i].x<<" y:"<<a.targets[i].y<<" distance:"<<a.targets[i].distance<<" angle:"<<a.targets[i].angle<<std::endl;
