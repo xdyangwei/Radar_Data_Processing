@@ -10,20 +10,19 @@
 #include <strings.h>
 #include <iostream>
 #include <unistd.h>
-#define SERV_PORT 5100
+#include <string>
+#define SERV_PORT 51000
 #define LISTENCLENTS 5
 void data_process(int socketfd,int n){
-    char buff[100];
+    char s[7];
+    size_t len= sizeof(s);
     size_t n1;
-    while(n>0){
-        if((n1=read(socketfd,&buff,100))>0){
-            std::cout<<buff<<std::endl;
-            n-=n1;
+        if((n1=read(socketfd,&s, len))>0){
+            std::cout<<s<<std::endl;
         }else if(n1<0&&errno==EINTR)
-            continue;
+            ;
         else if(n1<0)
             std::cerr<<"read error"<<std::endl;
-    }
 }
 
 
@@ -38,12 +37,15 @@ int main(){
         servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
         servaddr.sin_port=htons(SERV_PORT);
         if(bind(listenfd, (sockaddr*)&servaddr, sizeof(servaddr))==-1){
-            exit(-1);
+            exit(1);
         }
         listen(listenfd,LISTENCLENTS);
         for(;;){
             socklen_t clilen= sizeof(cliaddr);
+            //std::cout<<listenfd<<std::endl;
             auto connfd=accept(listenfd,(sockaddr*)&cliaddr, &clilen);
+           std::cout<<connfd<<std::endl;
+            std::cout<<inet_ntoa(cliaddr.sin_addr)<<" "<<cliaddr.sin_port<<std::endl;
             if(connfd<0){
                 if(errno==EINTR)
                     continue;
