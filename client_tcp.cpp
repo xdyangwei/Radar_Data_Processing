@@ -11,7 +11,7 @@ int main(){
     io_context io;
     //ip::tcp::endpoint port(ip::address::from_string("127.0.0.1"),5100);
     ip::tcp::resolver r(io);
-    ip::tcp::resolver::query q("localhost","5100");
+    ip::tcp::resolver::query q("localhost","51000");
     auto it=r.resolve(q);
     decltype(it) end;
     boost::system::error_code ec=error::host_not_found;
