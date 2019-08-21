@@ -11,14 +11,26 @@
 #include <iostream>
 #include <unistd.h>
 #include <string>
+#include "Radar_Data.h"
 #define SERV_PORT 51000
 #define LISTENCLENTS 5
 void data_process(int socketfd,int n){
-    char s[7];
-    size_t len= sizeof(s);
+    //size_t len= sizeof(s);
+    radar_data a;
+    bzero(&a, sizeof(a));
+    char s[72];
+    bzero(&s, sizeof(s));
     size_t n1;
-        if((n1=read(socketfd,&s, len))>0){
-            std::cout<<s<<std::endl;
+        if((n1=recv(socketfd,&s, 72,0))>0){
+            memcpy(&a,&s, sizeof(s));
+            std::cout<<stoi(std::to_string(a.targetcount))<<std::endl;
+            if(a.targetcount>=1&&a.header==0x55AA){
+                for(int i=0;i<a.targetcount;i++){
+                    std::cout<<"x:"<<a.targets[i].x<<" y:"<<a.targets[i].y<<" distance:"<<a.targets[i].distance<<" angle:"<<a.targets[i].angle<<std::endl;
+                }
+            }
+            bzero(s, sizeof(s));
+            bzero(&a, sizeof(a));
         }else if(n1<0&&errno==EINTR)
             ;
         else if(n1<0)
@@ -44,8 +56,7 @@ int main(){
             socklen_t clilen= sizeof(cliaddr);
             //std::cout<<listenfd<<std::endl;
             auto connfd=accept(listenfd,(sockaddr*)&cliaddr, &clilen);
-           std::cout<<connfd<<std::endl;
-            std::cout<<inet_ntoa(cliaddr.sin_addr)<<" "<<cliaddr.sin_port<<std::endl;
+            std::cout<<"connection from: "<<inet_ntoa(cliaddr.sin_addr)<<" "<<cliaddr.sin_port<<std::endl;
             if(connfd<0){
                 if(errno==EINTR)
                     continue;
